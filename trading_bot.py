@@ -229,44 +229,44 @@ class MT5TradingBot:
         """Get symbol-specific trading parameters based on timeframe"""
         timeframe = self.config.get('timeframe', 'H1').upper()
         
-        # Major pairs
+        # Major pairs - Conservative Scalping
         if symbol in ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF', 'NZDUSD']:
             if timeframe in ['M1', 'M5']:
-                return {'stop_loss_pips': 10, 'take_profit_pips': 20, 'risk_reward': 2.0}
+                return {'stop_loss_pips': 20, 'take_profit_pips': 40, 'risk_reward': 2.0}
             elif timeframe in ['M15', 'M30']:
-                return {'stop_loss_pips': 15, 'take_profit_pips': 30, 'risk_reward': 2.0}
+                return {'stop_loss_pips': 25, 'take_profit_pips': 50, 'risk_reward': 2.0}
             else:  # H1, H4, D1
                 return {'stop_loss_pips': 30, 'take_profit_pips': 60, 'risk_reward': 2.0}
         
-        # Cross pairs
+        # Cross pairs - Conservative Scalping
         elif symbol in ['EURGBP', 'EURJPY', 'GBPJPY', 'AUDJPY', 'EURAUD']:
             if timeframe in ['M1', 'M5']:
-                return {'stop_loss_pips': 15, 'take_profit_pips': 30, 'risk_reward': 2.0}
+                return {'stop_loss_pips': 30, 'take_profit_pips': 60, 'risk_reward': 2.0}
             elif timeframe in ['M15', 'M30']:
-                return {'stop_loss_pips': 20, 'take_profit_pips': 40, 'risk_reward': 2.0}
+                return {'stop_loss_pips': 35, 'take_profit_pips': 70, 'risk_reward': 2.0}
             else:
                 return {'stop_loss_pips': 40, 'take_profit_pips': 80, 'risk_reward': 2.0}
         
-        # Gold
+        # Gold - Conservative Scalping
         elif symbol in ['XAUUSD', 'GOLD']:
             if timeframe in ['M1', 'M5']:
-                return {'stop_loss_pips': 20, 'take_profit_pips': 40, 'risk_reward': 2.0}
-            elif timeframe in ['M15', 'M30']:
                 return {'stop_loss_pips': 30, 'take_profit_pips': 60, 'risk_reward': 2.0}
+            elif timeframe in ['M15', 'M30']:
+                return {'stop_loss_pips': 40, 'take_profit_pips': 80, 'risk_reward': 2.0}
             else:
                 return {'stop_loss_pips': 50, 'take_profit_pips': 100, 'risk_reward': 2.0}
         
-        # Crypto
+        # Crypto - Conservative Scalping
         elif symbol in ['BTCUSD', 'ETHUSD']:
             if timeframe in ['M1', 'M5']:
-                return {'stop_loss_pips': 50, 'take_profit_pips': 100, 'risk_reward': 2.0}
+                return {'stop_loss_pips': 80, 'take_profit_pips': 160, 'risk_reward': 2.0}
             else:
                 return {'stop_loss_pips': 100, 'take_profit_pips': 200, 'risk_reward': 2.0}
         
-        # Default
+        # Default - Conservative Scalping
         else:
             if timeframe in ['M1', 'M5']:
-                return {'stop_loss_pips': 10, 'take_profit_pips': 20, 'risk_reward': 2.0}
+                return {'stop_loss_pips': 20, 'take_profit_pips': 40, 'risk_reward': 2.0}
             else:
                 return {'stop_loss_pips': 30, 'take_profit_pips': 60, 'risk_reward': 2.0}
     
