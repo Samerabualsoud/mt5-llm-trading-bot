@@ -226,21 +226,49 @@ class MT5TradingBot:
         logger.info("=" * 80)
     
     def get_symbol_parameters(self, symbol: str) -> Dict:
-        """Get symbol-specific trading parameters"""
+        """Get symbol-specific trading parameters based on timeframe"""
+        timeframe = self.config.get('timeframe', 'H1').upper()
+        
         # Major pairs
         if symbol in ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF', 'NZDUSD']:
-            return {'stop_loss_pips': 30, 'take_profit_pips': 60, 'risk_reward': 2.0}
+            if timeframe in ['M1', 'M5']:
+                return {'stop_loss_pips': 10, 'take_profit_pips': 20, 'risk_reward': 2.0}
+            elif timeframe in ['M15', 'M30']:
+                return {'stop_loss_pips': 15, 'take_profit_pips': 30, 'risk_reward': 2.0}
+            else:  # H1, H4, D1
+                return {'stop_loss_pips': 30, 'take_profit_pips': 60, 'risk_reward': 2.0}
+        
         # Cross pairs
         elif symbol in ['EURGBP', 'EURJPY', 'GBPJPY', 'AUDJPY', 'EURAUD']:
-            return {'stop_loss_pips': 40, 'take_profit_pips': 80, 'risk_reward': 2.0}
+            if timeframe in ['M1', 'M5']:
+                return {'stop_loss_pips': 15, 'take_profit_pips': 30, 'risk_reward': 2.0}
+            elif timeframe in ['M15', 'M30']:
+                return {'stop_loss_pips': 20, 'take_profit_pips': 40, 'risk_reward': 2.0}
+            else:
+                return {'stop_loss_pips': 40, 'take_profit_pips': 80, 'risk_reward': 2.0}
+        
         # Gold
         elif symbol in ['XAUUSD', 'GOLD']:
-            return {'stop_loss_pips': 50, 'take_profit_pips': 100, 'risk_reward': 2.0}
+            if timeframe in ['M1', 'M5']:
+                return {'stop_loss_pips': 20, 'take_profit_pips': 40, 'risk_reward': 2.0}
+            elif timeframe in ['M15', 'M30']:
+                return {'stop_loss_pips': 30, 'take_profit_pips': 60, 'risk_reward': 2.0}
+            else:
+                return {'stop_loss_pips': 50, 'take_profit_pips': 100, 'risk_reward': 2.0}
+        
         # Crypto
         elif symbol in ['BTCUSD', 'ETHUSD']:
-            return {'stop_loss_pips': 100, 'take_profit_pips': 200, 'risk_reward': 2.0}
+            if timeframe in ['M1', 'M5']:
+                return {'stop_loss_pips': 50, 'take_profit_pips': 100, 'risk_reward': 2.0}
+            else:
+                return {'stop_loss_pips': 100, 'take_profit_pips': 200, 'risk_reward': 2.0}
+        
+        # Default
         else:
-            return {'stop_loss_pips': 30, 'take_profit_pips': 60, 'risk_reward': 2.0}
+            if timeframe in ['M1', 'M5']:
+                return {'stop_loss_pips': 10, 'take_profit_pips': 20, 'risk_reward': 2.0}
+            else:
+                return {'stop_loss_pips': 30, 'take_profit_pips': 60, 'risk_reward': 2.0}
     
     def calculate_position_size(self, balance: float, symbol: str, stop_loss_pips: int) -> float:
         """Calculate position size based on risk percentage"""
@@ -268,17 +296,24 @@ class MT5TradingBot:
             logger.error(f"Cannot get symbol info for {symbol}")
             return
         
-        point = symbol_info.point
         price = tick.ask if action == 'BUY' else tick.bid
+        
+        # Calculate pip size based on symbol type
+        if 'JPY' in symbol:
+            pip_size = 0.01  # JPY pairs: 1 pip = 0.01
+        elif 'XAU' in symbol or 'GOLD' in symbol:
+            pip_size = 0.10  # Gold: 1 pip = 0.10
+        else:
+            pip_size = 0.0001  # Most forex pairs: 1 pip = 0.0001
         
         # Calculate SL/TP
         if action == 'BUY':
-            sl = price - (params['stop_loss_pips'] * point * 10)
-            tp = price + (params['take_profit_pips'] * point * 10)
+            sl = price - (params['stop_loss_pips'] * pip_size)
+            tp = price + (params['take_profit_pips'] * pip_size)
             order_type = mt5.ORDER_TYPE_BUY
         else:
-            sl = price + (params['stop_loss_pips'] * point * 10)
-            tp = price - (params['take_profit_pips'] * point * 10)
+            sl = price + (params['stop_loss_pips'] * pip_size)
+            tp = price - (params['take_profit_pips'] * pip_size)
             order_type = mt5.ORDER_TYPE_SELL
         
         lots = self.calculate_position_size(mt5.account_info().balance, symbol, params['stop_loss_pips'])
