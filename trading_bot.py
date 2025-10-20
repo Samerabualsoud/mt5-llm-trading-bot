@@ -95,6 +95,8 @@ class MT5TradingBot:
         logger.info(f"Timeframe: {config.get('timeframe', 'H1')}")
         logger.info(f"Min Technical Confidence: {config.get('min_technical_confidence', 50)}%")
         logger.info(f"Min LLM Confidence: {config.get('min_llm_confidence', 50)}%")
+        logger.info(f"Min Margin Level: {config.get('min_margin_level', 800)}%")
+        logger.info(f"Risk per Trade: {config.get('risk_percent', 0.01) * 100}%")
         logger.info("=" * 80)
     
     def scan_markets(self):
@@ -103,15 +105,22 @@ class MT5TradingBot:
         positions = mt5.positions_get()
         open_positions_count = len(positions) if positions else 0
         
+        margin_level = account_info.margin_level if account_info.margin > 0 else float('inf')
+        margin_display = f"{margin_level:.2f}%" if margin_level != float('inf') else "N/A (no positions)"
+        
         logger.info("\n" + "=" * 80)
         logger.info(f"SCANNING MARKETS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info(f"Balance: ${account_info.balance:,.2f} | Equity: ${account_info.equity:,.2f}")
-        logger.info(f"Open Positions: {open_positions_count} | Daily Trades: {self.daily_trades}")
+        logger.info(f"Margin Level: {margin_display} | Open Positions: {open_positions_count} | Daily Trades: {self.daily_trades}")
         logger.info("=" * 80)
         
-        # Safety checks
-        if open_positions_count >= self.config['max_positions']:
-            logger.info(f"Max positions reached ({self.config['max_positions']})")
+        # Safety checks - Margin level instead of position count
+        margin_level = account_info.margin_level if account_info.margin > 0 else float('inf')
+        min_margin_level = self.config.get('min_margin_level', 800)  # Default 800%
+        
+        if margin_level < min_margin_level and account_info.margin > 0:
+            logger.info(f"Margin level too low ({margin_level:.2f}% < {min_margin_level}%)")
+            logger.info(f"Current: Equity ${account_info.equity:,.2f} | Margin ${account_info.margin:,.2f}")
             return
         
         if self.daily_trades >= self.config['max_daily_trades']:
