@@ -138,16 +138,16 @@ Reasoning: [Your analysis in 2-3 sentences]
         """Format indicator data for prompt"""
         lines = []
         
-        # Common indicators
-        if 'rsi' in signal_data:
+        # Common indicators (check if not None)
+        if signal_data.get('rsi') is not None:
             lines.append(f"RSI: {signal_data['rsi']:.2f}")
-        if 'macd' in signal_data:
+        if signal_data.get('macd') is not None:
             lines.append(f"MACD: {signal_data['macd']:.5f}")
-        if 'stochastic_k' in signal_data:
+        if signal_data.get('stochastic_k') is not None:
             lines.append(f"Stochastic K: {signal_data['stochastic_k']:.2f}")
-        if 'ema_20' in signal_data:
+        if signal_data.get('ema_20') is not None:
             lines.append(f"EMA20: {signal_data['ema_20']:.5f}")
-        if 'adx' in signal_data:
+        if signal_data.get('adx') is not None:
             lines.append(f"ADX: {signal_data['adx']:.2f}")
         
         # Signal details
